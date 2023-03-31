@@ -14,7 +14,7 @@ const router =require("express").Router();
  *          200:
  *              description: success
  *          404:
- *              description: notfound
+ *              description: not found
  */
 router.get("/",homeController.index)
 module.exports={
