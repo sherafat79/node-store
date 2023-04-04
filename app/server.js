@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const createError = require("http-errors");
 const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
+const cors=require("cors")
 module.exports = class Application {
   #app = express();
   $PORT;
@@ -14,11 +15,13 @@ module.exports = class Application {
     this.$DB_URI = DB_URI;
     this.configApplication();
     this.connectMongoDB();
+    this.initRedis()
     this.createServer();
     this.createRoutes();
     this.errorHandling();
   }
   configApplication() {
+    this.#app.use(cors())
     this.#app.use(morgan("dev"));
     this.#app.use(express.json());
     this.#app.use(express.urlencoded({ extended: true }));
@@ -49,6 +52,7 @@ module.exports = class Application {
     const http = require("http");
     http.createServer(this.#app).listen(this.$PORT, () => {
       console.log("app run in > http://localhost:" + this.$PORT);
+      console.log("api-doc  in > http://localhost:" + this.$PORT+"/api-doc");
     });
   }
   connectMongoDB() {
@@ -73,6 +77,9 @@ module.exports = class Application {
       console.log("disconnected");
       process.exit(0);
     });
+  }
+  initRedis(){
+    require("./utils/init_redis")
   }
   createRoutes() {
     this.#app.use(AllRoutes);

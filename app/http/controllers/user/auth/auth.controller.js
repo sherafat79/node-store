@@ -1,10 +1,12 @@
 const createHttpError = require("http-errors");
 const { UserModel } = require("../../../../models/User");
-const { USER_ROLE, EXPIRES_IN } = require("../../../../utils/constant");
+const { ROLES } = require("../../../../utils/constant");
 const {
   randomNumber,
   deleteUnknownData,
   SignAccessToken,
+  verifyRefreshToken,
+  SignRefreshToken,
 } = require("../../../../utils/functions");
 const {
   getOtpSchema,
@@ -44,9 +46,11 @@ class AuthController extends Controller {
       if (+Date.now() > user.otp.expiresIn)
         throw createHttpError.Unauthorized("کد ارسالی منقضی شده است");
       const accessToken = await SignAccessToken(user._id);
+      const refreshToken = await SignRefreshToken(user._id);
       return res.status(200).json({
         data: {
-          code: accessToken,
+          accessToken,
+          refreshToken,
         },
       });
     } catch (error) {
@@ -57,12 +61,12 @@ class AuthController extends Controller {
     const isUserExists = await this.checkUserExists(mobile);
     const otp = {
       code,
-      expiresIn: EXPIRES_IN,
+      expiresIn: new Date().getTime() + 120000,
     };
-    if (isUserExists) return await this.updateUser(mobile, {otp});
+    if (isUserExists) return await this.updateUser(mobile, { otp });
     return !!(await UserModel.create({
       mobile,
-      Role: [USER_ROLE],
+      Role: [ROLES.USER],
       otp,
     }));
   }
@@ -77,6 +81,22 @@ class AuthController extends Controller {
       { $set: userData }
     );
     return !!updateResult.modifiedCount;
+  }
+  async refreshToken(req, res, next) {
+    try {
+      const { refreshToken } = req.body;
+      const { _id: userId } = await verifyRefreshToken(refreshToken);
+      const accessToken = await SignAccessToken(userId);
+      const newRefreshToken = await SignRefreshToken(userId);
+      return res.status(200).json({
+        data: {
+          accessToken,
+          refreshToken: newRefreshToken,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 }
 module.exports = {

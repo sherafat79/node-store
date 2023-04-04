@@ -1,4 +1,5 @@
 const homeController = require("../../http/controllers/api/home.controller");
+const { verifyAccessToken } = require("../../http/middleware/verifyAccessToken");
 
 const router =require("express").Router();
 /**
@@ -10,13 +11,17 @@ const router =require("express").Router();
  *  get:
  *      summary: index of routes
  *      tags: [indexRoutes]
+ *      parameters:
+ *          -   in: header
+ *              name: refreshToken
+ *              example: Bearer Token
  *      responses:
  *          200:
  *              description: success
  *          404:
  *              description: not found
  */
-router.get("/",homeController.index)
+router.get("/",verifyAccessToken,homeController.index)
 module.exports={
     ApiRoutes:router
 }

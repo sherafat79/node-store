@@ -63,6 +63,33 @@ router.post("/get-otp", AuthController.getOtp);
  * 
  */
 router.post("/check-otp", AuthController.checkOtp);
+
+/**
+ * @swagger
+ * /user/refresh-token:
+ *    post:
+ *      summary: verify refresh token and generate new access token 
+ *      tags: [auth-Routes]
+ *      description: generate new access token 
+ *      parameters:
+ *      -   name: refreshToken
+ *          in: body
+ *          required: true
+ *          type: string
+ *      responses:
+ *        201:
+ *          description: success
+ *        400:
+ *           description: Bad Request
+ *        401:
+ *           description: unAuthorization
+ *        404:
+ *           description: not found
+ *        500: 
+ *           description: internal server error
+ * 
+ */
+router.post("/refresh-token", AuthController.refreshToken);
 module.exports = {
   authRoutes: router,
 };
